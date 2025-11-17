@@ -1,3 +1,53 @@
+Project: TCP Counter (server + client + React frontend)
+=====================================================
+
+Short description
+-----------------
+
+This repository contains a small example system that manages a single counter:
+
+## Project status (updated)
+
+Summary of what's implemented and current blockers:
+
+- `server.c`: implemented and tested locally. Builds with `gcc -o server server.c` and listens on the configured port (default 12345).
+- `client.c`: implemented as a small HTTP bridge (client-backend). Builds with `gcc -o client client.c`. Listens by default on `127.0.0.1:8000` and proxies REST requests to the TCP server.
+- `frontend/`: React + Vite UI is present. It calls the client-backend at `http://localhost:8000` by default. The frontend code was updated to use `import.meta.env` (Vite) instead of `process.env`.
+
+Blockers / warnings observed during development:
+
+- `npm install` inside `frontend/` may fail on WSL with `esbuild` ETXTBSY when the project is on a Windows-mounted drive. Recommended fix: move the project to the WSL filesystem (e.g. `~/LapTrinhMang/CK`) and reinstall, or install Node inside WSL (via `nvm`).
+- The compiled `client` emits `snprintf` warnings about potential truncation. These are warnings only; for robustness consider increasing buffer sizes and validating upstream replies.
+
+Quick verification commands
+
+```sh
+# build
+gcc -o server server.c
+gcc -o client client.c
+
+# run server
+./server 12345
+
+# run client-backend (in another terminal)
+./client 127.0.0.1 12345 8000
+
+# test API
+curl http://localhost:8000/counter
+curl -X POST http://localhost:8000/counter/incr
+
+# start frontend (after installing Node in WSL)
+cd frontend
+npm install
+npm run dev
+```
+
+If you'd like, I can:
+
+- Add WebSocket push support to `client.c` so the frontend receives real-time updates.
+- Replace the HTTP bridge with `civetweb` (embedded HTTP(S)+WS) and add optional TLS.
+- Help fix `npm install` on your machine (I can run diagnostics commands and walk through the WSL/Node/esbuild fixes).
+
 
 Project: TCP Counter (server + client + React frontend)
 =====================================================
