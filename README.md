@@ -6,68 +6,11 @@ Short description
 
 This repository contains a small example system that manages a single counter:
 
-## Project status (updated)
+## Project status
 
-Summary of what's implemented and current blockers:
-
-- `server.c`: implemented and tested locally. Builds with `gcc -o server server.c` and listens on the configured port (default 12345).
+- `server.c`: Builds with `gcc -o server server.c` and listens on the configured port (default 12345).
 - `client.c`: implemented as a small HTTP bridge (client-backend). Builds with `gcc -o client client.c`. Listens by default on `127.0.0.1:8000` and proxies REST requests to the TCP server.
-- `frontend/`: React + Vite UI is present. It calls the client-backend at `http://localhost:8000` by default. The frontend code was updated to use `import.meta.env` (Vite) instead of `process.env`.
-
-Blockers / warnings observed during development:
-
-- `npm install` inside `frontend/` may fail on WSL with `esbuild` ETXTBSY when the project is on a Windows-mounted drive. Recommended fix: move the project to the WSL filesystem (e.g. `~/LapTrinhMang/CK`) and reinstall, or install Node inside WSL (via `nvm`).
-- The compiled `client` emits `snprintf` warnings about potential truncation. These are warnings only; for robustness consider increasing buffer sizes and validating upstream replies.
-
-Quick verification commands
-
-```sh
-# build
-gcc -o server server.c
-gcc -o client client.c
-
-# run server
-./server 12345
-
-# run client-backend (in another terminal)
-./client 127.0.0.1 12345 8000
-
-# test API
-curl http://localhost:8000/counter
-curl -X POST http://localhost:8000/counter/incr
-
-# start frontend (after installing Node in WSL)
-cd frontend
-npm install
-npm run dev
-```
-
-If you'd like, I can:
-
-- Add WebSocket push support to `client.c` so the frontend receives real-time updates.
-- Replace the HTTP bridge with `civetweb` (embedded HTTP(S)+WS) and add optional TLS.
-- Help fix `npm install` on your machine (I can run diagnostics commands and walk through the WSL/Node/esbuild fixes).
-
-
-Project: TCP Counter (server + client + React frontend)
-=====================================================
-
-Short description
------------------
-This repository contains a small example system that manages a single counter:
-
-- `server.c`: a simple TCP counter server written in C. It accepts a line-based protocol (INCR, DECR, GET, RESET, QUIT) and handles multiple clients using select().
-- `client.c`: a minimal interactive C client that connects to the server and sends commands typed by the user (or piped input).
-- `frontend/`: a minimal React (Vite) frontend that talks to a local client-backend HTTP API (not included by default). The frontend expects a REST API at `http://localhost:8000` exposing `/counter` and endpoints to update the counter.
-
-Project structure
------------------
-
-Top-level files and folders:
-
-- `server.c`            : C TCP server (plain TCP). Build with `gcc -o server server.c`.
-- `client.c`            : C interactive client. Build with `gcc -o client client.c`.
-- `frontend/`           : React app (Vite). See `frontend/README.md` for running.
+- `frontend/`: calls the client-backend at `http://localhost:8000` by default. 
 
 Technology choices
 ------------------
@@ -76,10 +19,8 @@ Technology choices
 - Client: plain C TCP client (interactive). For a production desktop app you'd typically split networking/backend logic from UI.
 - Frontend: React + Vite. The app expects to call a local HTTP API provided by a client-backend (C) process.
 
-Recommended architecture (your earlier proposal)
+Recommended architecture
 ------------------------------------------------
-
-Phương án 1 (suggested):
 
 - Server C (Linux) using libevent + OpenSSL for high-performance async TLS server.
 - Client-backend C: manages TCP connection to Server C and exposes a local HTTP API (using civetweb or mongoose) and optionally a WebSocket endpoint for real-time updates.
@@ -106,13 +47,13 @@ gcc -o client client.c
 2) Run server (default port 12345):
 
 ```sh
-./server 12345
+./server
 ```
 
 3) Run client (connects to 127.0.0.1:12345):
 
 ```sh
-./client 127.0.0.1 12345
+./client
 ```
 
 4) Frontend (from `frontend/`):
@@ -130,32 +71,3 @@ The React app is a UI that expects a local client-backend to provide REST endpoi
 - POST /counter/decr     -> { "value": <number> }
 - POST /counter/reset    -> { "value": <number> }
 - (optional) WebSocket /ws -> messages like { type: 'counter', value: <number> }
-
-Troubleshooting notes (WSL / npm / esbuild)
-------------------------------------------
-
-- If you run `npm install` inside WSL and see `node: not found` or npm pointing at `/mnt/c/...`, that means your shell is invoking the Windows `npm` or Node is not installed in your WSL environment. Install Node inside WSL (recommended via `nvm`) and run `npm install` again.
-- If `npm install` fails with `ETXTBSY` while installing `esbuild`, common causes are:
-	- Project is on a Windows-mounted filesystem (/mnt/c) where executable binaries may be locked or incompatible. Move the project into the WSL filesystem (e.g. under `~/`) and reinstall.
-	- Antivirus / Windows Defender locking the file temporarily — try closing programs that may access the path or rebooting.
-	- A stale process is holding the esbuild binary — check `lsof`/`ps` and remove the file before reinstall.
-
-If you hit those errors, recommended quick fixes:
-
-```sh
-# Prefer working inside WSL filesystem, not /mnt/c
-# Example: copy project into WSL home
-cp -r /mnt/c/Path/To/CK ~/
-cd ~/CK/frontend
-nvm install --lts   # if you use nvm; or apt install nodejs
-npm install
-```
-
-Next steps / how I can help
----------------------------
-
-- Implement the client-backend in C (civetweb) that bridges the TCP server to HTTP + WebSocket and optionally supports TLS.
-- Convert the server to libevent + OpenSSL for TLS.
-- Package the frontend into an Electron app that bundles the React UI and communicates with the local C backend.
-
-If you want, tell me which next step to implement and I will add source files, build scripts and run a smoke-test.

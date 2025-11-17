@@ -6,7 +6,6 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export default function App() {
   const [value, setValue] = useState(null)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const wsRef = useRef(null)
 
@@ -27,7 +26,6 @@ export default function App() {
   }
 
   async function postAction(action) {
-    setLoading(true)
     try {
       setError(null)
       const r = await fetch(`${API_BASE}/counter/${action}`, { method: 'POST' })
@@ -40,8 +38,6 @@ export default function App() {
       }
     } catch (e) {
       setError(String(e))
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -76,10 +72,10 @@ export default function App() {
   <div style={{ fontSize: 48, margin: '20px 0' }}>{value === null ? '—' : value}</div>
   {error && <div style={{ color: 'maroon', marginTop: 8 }}>{error}</div>}
       <div style={{ display: 'flex', gap: 8 }}>
-  <button onClick={() => postAction('incr')} disabled={loading}>INCR</button>
-  <button onClick={() => postAction('decr')} disabled={loading}>DECR</button>
-  <button onClick={() => postAction('reset')} disabled={loading}>RESET</button>
-  <button onClick={fetchValue} disabled={loading}>REFRESH</button>
+  <button onClick={() => postAction('incr')}>INCR</button>
+  <button onClick={() => postAction('decr')}>DECR</button>
+  <button onClick={() => postAction('reset')}>RESET</button>
+  <button onClick={fetchValue}>REFRESH</button>
       </div>
 
       <p style={{ marginTop: 20, color: '#666' }}>
